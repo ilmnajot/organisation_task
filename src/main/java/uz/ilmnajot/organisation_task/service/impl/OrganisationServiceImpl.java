@@ -55,7 +55,8 @@ public class OrganisationServiceImpl implements OrganisationService {
     @Override
     public ApiResponse getOrganisation(Long organisationId) {
         Organisation organisationById = getOrganisationById(organisationId);
-        return new ApiResponse(true, "success", organisationById);
+        OrganisationResponse response = OrganisationResponse.toOrganisationResponse(organisationById);
+        return new ApiResponse(true, "success", response);
     }
 
     @Override
@@ -64,7 +65,7 @@ public class OrganisationServiceImpl implements OrganisationService {
         Page<Organisation> organisations = organisationRepository.findAll(pageable);
         List<OrganisationResponse> responseList = organisations
                 .stream()
-                .map(organisation -> new OrganisationResponse())
+                .map(OrganisationResponse::toOrganisationResponse)
                 .toList();
         return new ApiResponse(true, "success", responseList);
     }

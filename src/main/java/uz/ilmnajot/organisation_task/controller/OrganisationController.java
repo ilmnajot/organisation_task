@@ -20,7 +20,7 @@ public class OrganisationController {
     private final OrganisationService organisationService;
 
 
-    @PostMapping("/addOrganisation()")
+    @PostMapping("/addOrganisation")
     public HttpEntity<ApiResponse> addOrganisation(@RequestBody OrganisationRequest request) {
         ApiResponse apiResponse = organisationService.addOrganisation(request);
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
@@ -28,7 +28,7 @@ public class OrganisationController {
 
     @PutMapping("/updateOrganisation/{organisationId}")
     public HttpEntity<ApiResponse> updateOrganisation(@PathVariable("organisationId") Long organisationId,
-                                                @RequestBody RegionRequest request) {
+                                                      @RequestBody RegionRequest request) {
         ApiResponse apiResponse = organisationService.updateOrganisation(organisationId, request);
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
     }
@@ -41,7 +41,7 @@ public class OrganisationController {
 
     @GetMapping("/getOrganisations")
     public HttpEntity<ApiResponse> getOrganisations(@RequestParam(name = "page", defaultValue = "0") int page,
-                                              @RequestParam(name = "size", defaultValue = "10") int size) {
+                                                    @RequestParam(name = "size", defaultValue = "10") int size) {
         ApiResponse apiResponse = organisationService.getOrganisations(page, size);
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
     }
@@ -52,9 +52,6 @@ public class OrganisationController {
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
 
     }
-
-
-
 
 
 }

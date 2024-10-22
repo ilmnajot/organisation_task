@@ -10,6 +10,7 @@ import uz.ilmnajot.organisation_task.exception.AlreadyExistFoundException;
 import uz.ilmnajot.organisation_task.exception.NotFoundException;
 import uz.ilmnajot.organisation_task.payload.common.ApiResponse;
 import uz.ilmnajot.organisation_task.payload.request.RegionRequest;
+import uz.ilmnajot.organisation_task.payload.response.RegionResponse;
 import uz.ilmnajot.organisation_task.repository.RegionRepository;
 import uz.ilmnajot.organisation_task.service.RegionService;
 
@@ -52,9 +53,12 @@ public class RegionServiceImpl implements RegionService {
     public ApiResponse getRegions(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Region> regionPage = regionRepository.findAll(pageable);
-        List<RegionRequest> requestList = regionPage
+        if (regionPage.isEmpty()){
+            throw new NotFoundException("not regions found");
+        }
+        List<RegionResponse> requestList = regionPage
                 .stream()
-                .map(region -> new RegionRequest())
+                .map(RegionResponse::toRegionResponse)
                 .toList();
         return new ApiResponse(true, "success", requestList);
     }

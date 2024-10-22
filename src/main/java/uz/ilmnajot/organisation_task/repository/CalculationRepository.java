@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface CalculationRepository extends JpaRepository<Calculation, Long> {
 
-    @Query("SELECT e.firstName, e.lastName, c.amount, c.calculationType FROM calculations c JOIN c.employee e where c.calculationType IN (:calculationType) AND c.date between :hiredDate and : firedDate")
-    List<Object []> findBySalaryAndVacation(@Param("hiredDate")LocalDate hiredDate, @Param("firedDate") LocalDate firedDate);
+//    @Query("SELECT e.firstName, e.lastName, c.amount, c.calculationType FROM calculations c JOIN c.employee e where c.calculationType IN (:calculationType) AND c.date between :hiredDate and : firedDate")
+//    List<Object []> findBySalaryAndVacation(@Param("hiredDate")LocalDate hiredDate, @Param("firedDate") LocalDate firedDate);
 
 }
