@@ -21,14 +21,19 @@ public class Calculation {
     private Long id;
 
     private BigDecimal amount;
-    private String rate; //experience
-    private LocalDate localDate;
+    private BigDecimal rate; //experience
+    private LocalDate date;
 
     @Enumerated(EnumType.STRING)
     private CalculationType calculationType;
 
     @ManyToOne
     private Employee employee;
+
+    @ManyToOne
+    @JoinColumn(name = "organisation_id")
+    private Organisation organisation;
+
 
 
 }

@@ -5,12 +5,14 @@ import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import uz.ilmnajot.organisation_task.entity.Organisation;
-
+import uz.ilmnajot.organisation_task.entity.Region;
 @Setter
 @Getter
-public class RegionRequest {
-
+public class OrganisationRequest {
 
     private String name;
 
+    private Long regionId;
+
+    public Long parentOrganisationId;
 }

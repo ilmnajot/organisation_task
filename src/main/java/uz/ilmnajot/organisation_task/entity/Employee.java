@@ -21,15 +21,16 @@ public class Employee {
 
     private String firstName;
     private String lastName;
-
-    @Column(unique = true, nullable = false)
     private String pinfl;
 
     @Column(nullable = false)
     private LocalDate hiredDate;
 
+    private LocalDate firedDate; // the date when one employee is fired // ishdan ketgan sana
+
     private boolean deleted = false;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
+    @JoinColumn(name = "organisation_id")
     private Organisation organisation;
 }

@@ -16,12 +16,5 @@ public class Region {
     private Long id;
 
     private String name;
-
-    @ManyToOne
-    @JoinColumn(name = "organisation_id")
-    private Organisation organisation;
-
-    public Region(String regionName) {
-        this.name=regionName;
-    }
+    
 }

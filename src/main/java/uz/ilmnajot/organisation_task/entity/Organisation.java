@@ -19,11 +19,13 @@ public class Organisation {
 
     private String name;
 
-    @OneToMany(mappedBy = "organisation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Region> regions;
+    @ManyToOne
+    @JoinColumn(name = "region_id")
+    private Region region;
 
-    @OneToMany(mappedBy = "organisation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Employee> employees;
+    @ManyToOne
+    @JoinColumn(name = "organisation_id")
+    public Organisation parentOrganisation;
 
 
 }
