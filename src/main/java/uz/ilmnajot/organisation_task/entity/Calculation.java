@@ -20,13 +20,11 @@ public class Calculation {
     private Long id;
 
     private BigDecimal amount;
-    private BigDecimal rate; //experience
+    private Double rate; //experience
     private LocalDate date;
 
     @Enumerated(EnumType.STRING)
     private CalculationType calculationType;
-
-    private boolean deleted;
 
     @ManyToOne
     private Employee employee;
@@ -35,6 +33,7 @@ public class Calculation {
     @JoinColumn(name = "organisation_id")
     private Organisation organisation;
 
+    private boolean deleted;
 
 
 }
