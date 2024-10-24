@@ -11,12 +11,12 @@ import java.util.Optional;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    Optional<Employee> findByPinfl(String pinfl);
 
-    Optional<Employee> findByPinflOrId(String pinfl, Long employeeId);
+    Page<Employee> findAllByDeletedIsFalse(Pageable pageable);
+    Optional<Employee> findByIdAndDeletedFalse(Long id);
 
     Page<Employee> findAllByDeletedFalse(Pageable pageable);
-    Page<Employee> findAllByDeletedTrue(Pageable pageable);
+    Page<Employee> findAllByDeletedIsTrue(Pageable pageable);
 
 
 }

@@ -7,11 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.ilmnajot.organisation_task.entity.Organisation;
 import uz.ilmnajot.organisation_task.entity.Region;
+import uz.ilmnajot.organisation_task.exception.AlreadyExistFoundException;
 import uz.ilmnajot.organisation_task.exception.NotFoundException;
 import uz.ilmnajot.organisation_task.payload.common.ApiResponse;
-import uz.ilmnajot.organisation_task.payload.request.CompanyRequest;
 import uz.ilmnajot.organisation_task.payload.request.OrganisationRequest;
-import uz.ilmnajot.organisation_task.payload.request.RegionRequest;
 import uz.ilmnajot.organisation_task.payload.response.OrganisationResponse;
 import uz.ilmnajot.organisation_task.repository.OrganisationRepository;
 import uz.ilmnajot.organisation_task.repository.RegionRepository;
@@ -29,55 +28,120 @@ public class OrganisationServiceImpl implements OrganisationService {
 
     @Override
     public ApiResponse addOrganisation(OrganisationRequest request) {
-        Region region = regionRepository.findById(request.getRegionId()).orElseThrow(()
-                -> new NotFoundException("region not found"));
-        Organisation parentOrgan = organisationRepository.findById(request.getParentOrganisationId()).orElseThrow(()
-                -> new NotFoundException("organisation not found"));
-        Organisation branch = new Organisation();
-        branch.setName(request.getName());
-        branch.setRegion(region);
-        branch.setParentOrganisation(parentOrgan);
-        Organisation savedOrgan = organisationRepository.save(branch);
-        OrganisationResponse response = OrganisationResponse.toOrganisationResponse(savedOrgan);
+        existByName(request.getName(), request.getRegionId());
+        Organisation organisation = toOrganisationEntity(request);
+        Organisation savedOrgan = organisationRepository.save(organisation);
+        OrganisationResponse response = toOrganisationResponse(savedOrgan);
         return new ApiResponse(true, "success", response);
     }
 
     @Override
-    public ApiResponse updateOrganisation(Long organisationId, RegionRequest request) {
-        Organisation organisation = organisationRepository.findById(organisationId).orElseThrow(()
+    public ApiResponse updateOrganisation(Long organisationId, OrganisationRequest request) {
+        existByName(request.getName(), request.getRegionId());
+        Organisation organisation = organisationRepository.findByIdAndDeletedFalse(organisationId).orElseThrow(()
                 -> new NotFoundException("organisation not found"));
-        organisation.setName(request.getName());
-        Organisation updatedOrganisation = organisationRepository.save(organisation);
-        OrganisationResponse.toOrganisationResponse(updatedOrganisation);
-        return new ApiResponse(true, "success", "updated successfully");
+        Organisation organ = fromUpdateToOrganisation(request, organisation);
+        Organisation addedOrgan = organisationRepository.save(organ);
+        OrganisationResponse response = toOrganisationResponse(addedOrgan);
+        return new ApiResponse(true, "success", response);
     }
 
     @Override
     public ApiResponse getOrganisation(Long organisationId) {
-        Organisation organisationById = getOrganisationById(organisationId);
-        OrganisationResponse response = OrganisationResponse.toOrganisationResponse(organisationById);
+        Organisation organisation = organisationRepository.findByIdAndDeletedFalse(organisationId).orElseThrow(()
+                -> new NotFoundException("organisation not found"));
+        OrganisationResponse response = toOrganisationResponse(organisation);
         return new ApiResponse(true, "success", response);
     }
 
     @Override
     public ApiResponse getOrganisations(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Organisation> organisations = organisationRepository.findAll(pageable);
+        Page<Organisation> organisations = organisationRepository.findAllByDeletedIsFalse(pageable);
         List<OrganisationResponse> responseList = organisations
                 .stream()
-                .map(OrganisationResponse::toOrganisationResponse)
+                .map(this::toOrganisationResponse)
                 .toList();
         return new ApiResponse(true, "success", responseList);
     }
 
     @Override
-    public ApiResponse deleteOrgansation(Long organisationId) {
-        getOrganisationById(organisationId);
-        organisationRepository.deleteById(organisationId);
-        return new ApiResponse(true, "success", "Organisation has been successfully deleted");
+    public ApiResponse deleteOrganisation(Long organisationId) {
+        Organisation organisation = getOrganisationById(organisationId);
+        organisation.setDeleted(true);
+        Organisation deletedOrgan = organisationRepository.save(organisation);
+        OrganisationResponse response = toOrganisationResponse(deletedOrgan);
+        return new ApiResponse(true, "success", "Organisation has been successfully deleted" + response);
+    }
+
+    @Override
+    public ApiResponse getDeletedOrganisations(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Organisation> organisations = organisationRepository.findAllByDeletedIsTrue(pageable);
+        List<OrganisationResponse> responseList = organisations
+                .stream()
+                .map(this::toOrganisationResponse)
+                .toList();
+        return new ApiResponse(true, "success", responseList);
     }
 
     public Organisation getOrganisationById(Long organisationId) {
-        return organisationRepository.findById(organisationId).orElseThrow(() -> new NotFoundException("not found"));
+        return organisationRepository.findByIdAndDeletedFalse(organisationId).orElseThrow(()
+                -> new NotFoundException("organisation not found"));
     }
+
+    private Organisation toOrganisationEntity(OrganisationRequest request) {
+        Organisation parent = null;
+        if (request.getParentOrganisationId() != null) {
+
+            parent = organisationRepository.findByIdAndDeletedFalse(request.getParentOrganisationId()).orElseThrow(()
+                    -> new NotFoundException("organisation not found"));
+        }
+        Region region = regionRepository.findByIdAndDeletedFalse(request.getRegionId()).orElseThrow(()
+                -> new NotFoundException("Region not found"));
+        return Organisation
+                .builder()
+                .name(request.getName())
+                .parentOrganisation(parent)
+                .region(region)
+                .build();
+    }
+
+    private OrganisationResponse toOrganisationResponse(Organisation organisation) {
+
+        return OrganisationResponse
+                .builder()
+                .id(organisation.getId())
+                .name(organisation.getName())
+                .regionId(organisation.getRegion().getId())
+                .parentOrganisationId(organisation.getParentOrganisation().getId())
+                .deleted(organisation.isDeleted())
+                .build();
+    }
+
+    private void existByName(String name, Long regionId) {
+        if (organisationRepository.existsByNameAndRegionId(name, regionId)) {
+            throw new AlreadyExistFoundException("In this region this name is already taken");
+        }
+    }
+
+    private Organisation fromUpdateToOrganisation(OrganisationRequest request, Organisation organisation) {
+
+        Organisation organisation1 = organisationRepository.findByIdAndDeletedFalse(request.getParentOrganisationId()).orElseThrow(()
+                -> new NotFoundException("organisation not found"));
+        Region region = regionRepository.findByIdAndDeletedFalse(request.getRegionId()).orElseThrow(()
+                -> new NotFoundException("region not found"));
+
+        if (request.getName() != null) {
+            organisation.setName(request.getName());
+        }
+        if (request.getParentOrganisationId() != null) {
+            organisation.setParentOrganisation(organisation1);
+        }
+        if (request.getRegionId() != null) {
+            organisation.setRegion(region);
+        }
+        return organisation;
+    }
+
 }

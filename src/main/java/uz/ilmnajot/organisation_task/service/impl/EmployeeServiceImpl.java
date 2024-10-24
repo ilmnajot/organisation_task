@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.ilmnajot.organisation_task.entity.Employee;
 import uz.ilmnajot.organisation_task.entity.Organisation;
-import uz.ilmnajot.organisation_task.exception.AlreadyExistFoundException;
 import uz.ilmnajot.organisation_task.exception.NotFoundException;
 import uz.ilmnajot.organisation_task.payload.common.ApiResponse;
 import uz.ilmnajot.organisation_task.payload.request.EmployeeRequest;
@@ -31,85 +30,67 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ApiResponse addEmployee(EmployeeRequest request) {
-        Optional<Employee> optionalEmployee = employeeRepository.findByPinfl(request.getPinfl());
+        Employee employee = toEmployeeEntity(request);
+        Employee addedEmployee = employeeRepository.save(employee);
+        EmployeeResponse employeeResponse = toEmployeeResponse(addedEmployee);
+        return new ApiResponse(true, "new employee has been added successfully", employeeResponse);
+    }
 
-        if (optionalEmployee.isPresent()) {
-            throw new AlreadyExistFoundException("This employee already exists with pnfl " + request.getPinfl());
-        }
-        Organisation organisation = organisationRepository.findById(request.getOrganisationId()).orElseThrow(()
-                -> new NotFoundException("No organization found with id " + request.getOrganisationId()));
+    @Override
+    public ApiResponse updateEmployeeData(Long employeeId, EmployeeRequest request) {
+        Employee employee = employeeRepository.findByIdAndDeletedFalse(employeeId).orElseThrow(()
+                -> new NotFoundException("not found employee"));
+        Employee updatedEmployee = toUpdateEmployee(request, employee);
+        Employee saved = employeeRepository.save(updatedEmployee);
+        return new ApiResponse(true, "success", saved);
 
-        Employee employee = new Employee();
-        employee.setFirstName(request.getFirstName());
-        employee.setLastName(request.getLastName());
-        employee.setPinfl(request.getPinfl());
-        employee.setHiredDate(request.getHiredDate());
-        employee.setOrganisation(organisation);
-        employeeRepository.save(employee);
-        return new ApiResponse(true, "Employee added successfully");
     }
 
     @Override
     public ApiResponse getEmployee(Long employeeId) {
-        Employee employee = getEmployeeById(employeeId);
-        EmployeeResponse employeeResponse = EmployeeResponse.toEmployeeResponse(employee);
+        Employee employee = employeeRepository.findByIdAndDeletedFalse(employeeId).orElseThrow(()
+                -> new NotFoundException("employee not found"));
+        EmployeeResponse employeeResponse = toEmployeeResponse(employee);
         return new ApiResponse(true, employeeResponse);
     }
 
     @Override
     public ApiResponse findAllEmployees(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Employee> employeeList = employeeRepository.findAll(pageable);
-        List<EmployeeResponse> responseList = employeeList
+        Page<Employee> employees = employeeRepository.findAll(pageable);
+        List<EmployeeResponse> employeeList = employees
                 .stream()
-                .map(EmployeeResponse::toActiveEmployeeResponse)
+                .map(this::toEmployeeResponse)
                 .toList();
         Map<String, Object> response = new HashMap<>();
-        response.put("employees", responseList);
-        response.put("currentPage", employeeList.getNumber());
-        response.put("totalPages", employeeList.getTotalPages());
-        response.put("totalElements", employeeList.getTotalElements());
-        response.put("size", employeeList.getSize());
+        response.put("employees", employeeList);
+        response.put("currentPage", employees.getNumber());
+        response.put("totalPages", employees.getTotalPages());
+        response.put("totalElements", employees.getTotalElements());
+        response.put("size", employees.getSize());
         return new ApiResponse(true, "success", response);
     }
 
     @Override
-    public ApiResponse updateEmployeeData(Long employeeId, EmployeeRequest request) {
-        Optional<Employee> optionalEmployee = employeeRepository.findByPinflOrId(request.getPinfl(), employeeId);
-        Organisation organisation = organisationRepository.findById(request.getOrganisationId()).orElseThrow(()
-                -> new NotFoundException("organisation is not found with id: " + request.getOrganisationId()));
-        if (optionalEmployee.isPresent()) {
-            Employee employee = optionalEmployee.get();
-            employee.setFirstName(request.getFirstName());
-            employee.setLastName(request.getLastName());
-            employee.setPinfl(request.getPinfl());
-            employee.setHiredDate(request.getHiredDate());
-            employee.setOrganisation(organisation);
-            Employee saved = employeeRepository.save(employee);
-            EmployeeResponse employeeResponse = EmployeeResponse.toEmployeeResponse(saved);
-            return new ApiResponse(true, "success", employeeResponse);
-        }
-        throw new NotFoundException("employee not found");
-    }
-
-    @Override
     public ApiResponse deleteEmployee(Long employeeId) {
-        Employee employee = getEmployeeById(employeeId);
+        Employee employee = employeeRepository.findByIdAndDeletedFalse(employeeId).orElseThrow(()
+                -> new NotFoundException("employee not found"));
         employee.setDeleted(true);
-        employeeRepository.save(employee);
-        return new ApiResponse(true, "success", "employee has been deleted");
+        Employee deletedEmployee = employeeRepository.save(employee);
+        EmployeeResponse employeeResponse = toEmployeeResponse(deletedEmployee);
+        return new ApiResponse(true, employeeResponse);
     }
 
     @Override
     public ApiResponse findAllActiveEmployees(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Employee> employees = employeeRepository.findAllByDeletedFalse(pageable);
+        Page<Employee> employees = employeeRepository.findAllByDeletedIsFalse(pageable);
         if (employees.isEmpty()) {
             throw new NotFoundException("employees are not found");
         }
         List<EmployeeResponse> responseList = employees
                 .stream()
-                .map(EmployeeResponse::toActiveEmployeeResponse)
+                .map(this::toEmployeeResponse)
                 .toList();
         Map<String, Object> response = new HashMap<>();
         response.put("employees", responseList);
@@ -123,13 +104,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public ApiResponse getAllDeletedEmployees(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Employee> employeePage = employeeRepository.findAllByDeletedTrue(pageable);
+        Page<Employee> employeePage = employeeRepository.findAllByDeletedIsTrue(pageable);
         if (employeePage.isEmpty()) {
             throw new NotFoundException("employees are not found");
         }
         List<EmployeeResponse> responseList = employeePage
                 .stream()
-                .map(EmployeeResponse::toActiveEmployeeResponse)
+                .map(this::toEmployeeResponse)
                 .toList();
         Map<String, Object> response = new HashMap<>();
         response.put("employees", responseList);
@@ -140,11 +121,52 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new ApiResponse(true, "success", response);
     }
 
-    private Employee getEmployeeById(Long employeeId) {
-        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
-        if (optionalEmployee.isPresent()) {
-            return optionalEmployee.get();
+    private Employee toEmployeeEntity(EmployeeRequest request) {
+        Organisation organisation = organisationRepository.findByIdAndDeletedFalse(request.getOrganisationId()).orElseThrow(()
+                -> new NotFoundException("Organisation not found"));
+        return Employee
+                .builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .pinfl(request.getPinfl())
+                .hiredDate(request.getHiredDate())
+                .organisation(organisation)
+                .build();
+    }
+
+    private EmployeeResponse toEmployeeResponse(Employee employee) {
+        return EmployeeResponse
+                .builder()
+                .id(employee.getId())
+                .firstName(employee.getFirstName())
+                .lastName(employee.getLastName())
+                .pinfl(employee.getPinfl())
+                .hiredDate(employee.getHiredDate())
+                .organisationId(employee.getOrganisation().getId())
+                .deleted(employee.isDeleted())
+                .build();
+    }
+
+    private Employee toUpdateEmployee(EmployeeRequest updateRequest, Employee employee) {
+        Organisation organisation = organisationRepository.findByIdAndDeletedFalse(updateRequest.getOrganisationId()).orElseThrow(()
+                -> new NotFoundException("organisation not found "));
+        if (updateRequest.getFirstName() != null) {
+            employee.setFirstName(updateRequest.getFirstName());
         }
-        throw new NotFoundException("No employee found with id " + employeeId);
+        if (updateRequest.getLastName() != null) {
+            employee.setLastName(updateRequest.getLastName());
+        }
+        if (updateRequest.getPinfl() != null) {
+            employee.setPinfl(updateRequest.getPinfl());
+        }
+        if (updateRequest.getHiredDate() != null) {
+            employee.setHiredDate(updateRequest.getHiredDate());
+        }
+        if (updateRequest.getOrganisationId() != null) {
+            employee.setOrganisation(organisation);
+        }
+
+        return employee;
+
     }
 }

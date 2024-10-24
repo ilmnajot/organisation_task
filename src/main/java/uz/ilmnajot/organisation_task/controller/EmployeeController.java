@@ -21,6 +21,13 @@ public class EmployeeController {
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
     }
 
+    @PutMapping("/updateEmployee/{employeeId}")
+    public HttpEntity<ApiResponse> updateEmployee(@PathVariable("employeeId") Long employeeId,
+                                                  @RequestBody EmployeeRequest request) {
+        ApiResponse apiResponse = employeeService.updateEmployeeData(employeeId, request);
+        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
+    }
+
     @GetMapping("/getEmployee/{employeeId}")
     public HttpEntity<ApiResponse> getEmployee(@PathVariable("employeeId") Long employeeId) {
         ApiResponse apiResponse = employeeService.getEmployee(employeeId);
@@ -46,13 +53,6 @@ public class EmployeeController {
                                                           @RequestParam(defaultValue = "10") int size) {
         ApiResponse allEmployees = employeeService.getAllDeletedEmployees(page, size);
         return ResponseEntity.status(allEmployees.isSuccess() ? 200 : 404).body(allEmployees);
-    }
-
-    @PutMapping("/updateEmployee/{employeeId}")
-    public HttpEntity<ApiResponse> updateEmployee(@PathVariable("employeeId") Long employeeId,
-                                                  @RequestBody EmployeeRequest request) {
-        ApiResponse apiResponse = employeeService.updateEmployeeData(employeeId, request);
-        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
     }
 
     @DeleteMapping("/deleteEmployee/{employeeId}")

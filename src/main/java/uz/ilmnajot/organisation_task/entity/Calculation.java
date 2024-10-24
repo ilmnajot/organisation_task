@@ -13,7 +13,6 @@ import java.time.LocalDate;
 @Getter
 @Entity(name = "calculations")
 @Builder
-@ToString
 public class Calculation {
 
     @Id
@@ -26,6 +25,8 @@ public class Calculation {
 
     @Enumerated(EnumType.STRING)
     private CalculationType calculationType;
+
+    private boolean deleted;
 
     @ManyToOne
     private Employee employee;

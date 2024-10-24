@@ -5,12 +5,11 @@ import lombok.*;
 
 import java.util.List;
 
-@Setter
-@Getter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity(name = "organisations")
-@ToString
+@Builder
 public class Organisation {
 
     @Id
@@ -19,13 +18,21 @@ public class Organisation {
 
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "region_id")
     private Region region;
+
+    private boolean deleted;
 
     @ManyToOne
     @JoinColumn(name = "organisation_id")
     public Organisation parentOrganisation;
 
+//    public Long getPatentId() {
+//        if (parentOrganisation != null) {
+//            return parentOrganisation.getPatentId();
+//        }
+//        return null;
+//    }
 
 }

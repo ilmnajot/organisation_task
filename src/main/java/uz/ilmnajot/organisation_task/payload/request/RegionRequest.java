@@ -10,7 +10,6 @@ import uz.ilmnajot.organisation_task.entity.Organisation;
 @Getter
 public class RegionRequest {
 
-
     private String name;
 
 }

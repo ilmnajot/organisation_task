@@ -11,7 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
 @Entity(name = "employees")
 public class Employee {
 
@@ -22,15 +21,10 @@ public class Employee {
     private String firstName;
     private String lastName;
     private String pinfl;
-
-    @Column(nullable = false)
     private LocalDate hiredDate;
-
-    private LocalDate firedDate; // the date when one employee is fired // ishdan ketgan sana
-
-    private boolean deleted = false;
-
     @ManyToOne
     @JoinColumn(name = "organisation_id")
     private Organisation organisation;
+
+    private boolean deleted;
 }

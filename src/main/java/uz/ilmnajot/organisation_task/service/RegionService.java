@@ -12,5 +12,5 @@ public interface RegionService {
 
     ApiResponse getRegions(int page, int size);
 
-    ApiResponse deteleRegion(Long regionId);
+    ApiResponse deleteRegion(Long regionId);
 }

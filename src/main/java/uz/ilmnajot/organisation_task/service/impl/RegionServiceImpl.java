@@ -25,49 +25,52 @@ public class RegionServiceImpl implements RegionService {
 
     @Override
     public ApiResponse addRegion(RegionRequest request) {
-        Optional<Region> optionalRegion = regionRepository.findByName(request.getName());
-        if (optionalRegion.isPresent()) {
-            throw new AlreadyExistFoundException("region with name " + request.getName() + " is already exists");
-        }
-        Region region = new Region();
-        region.setName(request.getName());
-        Region savedRegion = regionRepository.save(region);
-        return new ApiResponse(true, "success", savedRegion);
+       existsByName(request.getName());
+        Region regionEntity = toRegionEntity(request);
+        Region savedRegion = regionRepository.save(regionEntity);
+        RegionResponse regionResponse = toRegionResponse(savedRegion);
+        return new ApiResponse(true, "success", regionResponse);
     }
 
     @Override
     public ApiResponse updateRegion(Long regionId, RegionRequest request) {
-        Region region = getRegionById(regionId);
-        region.setName(request.getName());
-        Region updatedRegion = regionRepository.save(region);
+       existsByName(request.getName());
+        Region region = regionRepository.findById(regionId).orElseThrow(()
+                -> new NotFoundException("region not found"));
+        Region converted = fromUpdateRegion(request, region);
+        Region updatedRegion = regionRepository.save(converted);
         return new ApiResponse(true, "success", updatedRegion);
     }
 
     @Override
     public ApiResponse getRegion(Long regionId) {
         Region region = getRegionById(regionId);
-        return new ApiResponse(true, "success", region);
+        RegionResponse regionResponse = toRegionResponse(region);
+        return new ApiResponse(true, "success", regionResponse);
     }
 
     @Override
     public ApiResponse getRegions(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Region> regionPage = regionRepository.findAll(pageable);
-        if (regionPage.isEmpty()){
+        Page<Region> regionPage = regionRepository.findAllByDeletedFalse(pageable);
+        if (regionPage.isEmpty()) {
             throw new NotFoundException("not regions found");
         }
         List<RegionResponse> requestList = regionPage
                 .stream()
-                .map(RegionResponse::toRegionResponse)
+                .map(this::toRegionResponse)
                 .toList();
         return new ApiResponse(true, "success", requestList);
     }
 
     @Override
-    public ApiResponse deteleRegion(Long regionId) {
-        getRegionById(regionId);
-        regionRepository.deleteById(regionId);
-        return new ApiResponse(true, "success", "the region with id " + regionId + " has been deleted");
+    public ApiResponse deleteRegion(Long regionId) {
+        Region region = regionRepository.findByIdAndDeletedFalse(regionId).orElseThrow(()
+                -> new NotFoundException("region not found"));
+        region.setDeleted(true);
+        Region savedRegion = regionRepository.save(region);
+        RegionResponse regionResponse = toRegionResponse(savedRegion);
+        return new ApiResponse(true, "success", "the region has been deleted: " + regionResponse);
     }
 
 
@@ -77,6 +80,33 @@ public class RegionServiceImpl implements RegionService {
             return optionalRegion.get();
         }
         throw new NotFoundException("not found region");
+    }
+
+    private RegionResponse toRegionResponse(Region region) {
+        return RegionResponse
+                .builder()
+                .id(region.getId())
+                .name(region.getName())
+                .build();
+    }
+
+    private Region toRegionEntity(RegionRequest request) {
+        return Region.builder()
+                .name(request.getName())
+                .build();
+    }
+
+    private void existsByName(String name){
+        if (regionRepository.existsByName(name)) {
+            throw new AlreadyExistFoundException("This name already has been taken");
+        }
+    }
+
+    private Region fromUpdateRegion(RegionRequest request, Region region){
+        if (request.getName()!=null){
+            region.setName(request.getName());
+        }
+        return region;
     }
 
 }

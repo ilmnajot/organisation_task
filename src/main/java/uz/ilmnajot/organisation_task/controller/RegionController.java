@@ -1,6 +1,4 @@
 package uz.ilmnajot.organisation_task.controller;
-
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +42,7 @@ public class RegionController {
 
     @DeleteMapping("/deleteRegion/{regionId}")
     public HttpEntity<ApiResponse> deleteRegion(@PathVariable(name = "regionId") Long regionId) {
-        ApiResponse apiResponse = regionService.deteleRegion(regionId);
+        ApiResponse apiResponse = regionService.deleteRegion(regionId);
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
 
     }

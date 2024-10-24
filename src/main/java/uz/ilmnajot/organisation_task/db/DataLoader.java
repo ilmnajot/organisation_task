@@ -44,7 +44,7 @@ public class DataLoader implements CommandLineRunner {
             employee.setFirstName("Elbek");
             employee.setLastName("Umaror");
             employee.setHiredDate(LocalDate.parse("2024-10-10"));
-            employee.setFiredDate(null);
+//            employee.setFiredDate(null);
             employee.setOrganisation(organisation);
 
             regionRepository.save(region);

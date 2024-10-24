@@ -16,5 +16,7 @@ public class Region {
     private Long id;
 
     private String name;
+
+    private boolean deleted;
     
 }
