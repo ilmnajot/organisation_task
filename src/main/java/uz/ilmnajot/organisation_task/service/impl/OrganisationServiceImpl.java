@@ -11,6 +11,8 @@ import uz.ilmnajot.organisation_task.exception.AlreadyExistFoundException;
 import uz.ilmnajot.organisation_task.exception.NotFoundException;
 import uz.ilmnajot.organisation_task.payload.common.ApiResponse;
 import uz.ilmnajot.organisation_task.payload.request.OrganisationRequest;
+import uz.ilmnajot.organisation_task.payload.response.EmployeeSalaryInfo;
+import uz.ilmnajot.organisation_task.payload.response.InfoEmployeeOrganization;
 import uz.ilmnajot.organisation_task.payload.response.OrganisationResponse;
 import uz.ilmnajot.organisation_task.repository.OrganisationRepository;
 import uz.ilmnajot.organisation_task.repository.RegionRepository;
@@ -85,6 +87,25 @@ public class OrganisationServiceImpl implements OrganisationService {
                 .toList();
         return new ApiResponse(true, "success", responseList);
     }
+
+    @Override
+    public ApiResponse getInfoEmployee(String month, Long parentId) {
+        List<InfoEmployeeOrganization> infoAboutEmployeeOrgan = organisationRepository.getInfoAboutEmployeeOrgan(month, parentId);
+        if (infoAboutEmployeeOrgan.isEmpty()){
+            throw new NotFoundException("information not found");
+        }
+        return new ApiResponse(true, "success", infoAboutEmployeeOrgan);
+    }
+
+    @Override
+    public ApiResponse getInfoEmployeeSalary(String month) {
+        List<EmployeeSalaryInfo> employeeSalaryInfo = organisationRepository.getEmployeeSalaryInfo(month);
+        if (employeeSalaryInfo.isEmpty()){
+            throw new NotFoundException("data not found");
+        }
+        return new ApiResponse(true, "success", employeeSalaryInfo);
+    }
+
 
     public Organisation getOrganisationById(Long organisationId) {
         return organisationRepository.findByIdAndDeletedFalse(organisationId).orElseThrow(()

@@ -15,4 +15,8 @@ public interface OrganisationService {
     ApiResponse deleteOrganisation(Long organisationId);
 
     ApiResponse getDeletedOrganisations(int page, int size);
+
+    ApiResponse getInfoEmployee(String month, Long id);
+
+    ApiResponse getInfoEmployeeSalary(String month);
 }

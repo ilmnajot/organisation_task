@@ -1,5 +1,6 @@
 package uz.ilmnajot.organisation_task.controller;
 
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class OrganisationController {
     @GetMapping("/getOrganisation/{organisationId}")
     public HttpEntity<ApiResponse> getOrganisation(@PathVariable("organisationId") Long organisationId) {
         ApiResponse apiResponse = organisationService.getOrganisation(organisationId);
-        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
+        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
     }
 
     @GetMapping("/getOrganisations")
@@ -53,9 +54,22 @@ public class OrganisationController {
     @DeleteMapping("/deleteOrganisation/{organisationId}")
     public HttpEntity<ApiResponse> deleteOrganisation(@PathVariable(name = "organisationId") Long organisationId) {
         ApiResponse apiResponse = organisationService.deleteOrganisation(organisationId);
-        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
+        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
 
     }
+
+    @GetMapping("/getInfoEmployee")
+    public HttpEntity<ApiResponse> getInfoEmployeeInOrgan(@PathParam("month") String month,
+                                                          @PathParam("parentId") Long parentId){
+        ApiResponse apiResponse = organisationService.getInfoEmployee(month, parentId);
+        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
+    }
+    @GetMapping("/getInfoEmployeeSalary")
+    public HttpEntity<ApiResponse> getInfoEmployeeSalary(@PathParam("month") String month){
+        ApiResponse apiResponse = organisationService.getInfoEmployeeSalary(month);
+        return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
+    }
+
 
 
 }

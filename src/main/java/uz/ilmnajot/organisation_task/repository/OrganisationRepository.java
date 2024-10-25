@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uz.ilmnajot.organisation_task.entity.Organisation;
+import uz.ilmnajot.organisation_task.payload.common.ApiResponse;
 import uz.ilmnajot.organisation_task.payload.response.EmployeeSalaryInfo;
 import uz.ilmnajot.organisation_task.payload.response.InfoEmployeeOrganization;
 
@@ -23,11 +24,12 @@ public interface OrganisationRepository extends JpaRepository<Organisation, Long
     boolean existsByNameAndRegionId(String name, Long id);
 
 
-//    @Query("select new uz.ilmnajot.organisation_task.payload.response.InfoEmployeeOrganization(e.firstName, e.lastName, e.pinfl, avg(c.amount), o.name, e.id, o.id, o.region.id) from organisations as o " +
-//            "join organisations as parent_id on o.parentOrganisation.id= parent_id.id " +
-//            "join employees as e on e.organisation.id=o.id " +
-//            "join calculations as c on c.employee.id = e.id where to_char(c.date, 'YYYY.MM')=:month and parent_id.id =:id")
-//    List<InfoEmployeeOrganization> getInfoAboutEmployeeOrgan(@Param("month") String month, @Param("id") Long id);
+    ApiResponse getGeneralRate(Double rate, String month);
+    @Query("select new uz.ilmnajot.organisation_task.payload.response.InfoEmployeeOrganization(e.firstName, e.lastName, e.pinfl, avg(c.amount), o.name, e.id, o.region.id) from organisations as o " +
+            "join organisations as parent_id on o.parentOrganisation.id= parent_id.id " +
+            "join employees as e on e.organisation.id=o.id " +
+            "join calculations as c on c.employee.id = e.id where to_char(c.date, 'YYYY.MM')=:month and parent_id.id =:id")
+    List<InfoEmployeeOrganization> getInfoAboutEmployeeOrgan(@Param("month") String month, @Param("id") Long id);
 
 
     @Query("select new uz.ilmnajot.organisation_task.payload.response.EmployeeSalaryInfo(count(e.organisation.id), sum (c.amount), e.pinfl) " +
