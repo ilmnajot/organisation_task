@@ -1,5 +1,4 @@
 package uz.ilmnajot.organisation_task.controller;
-
 import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
@@ -7,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.ilmnajot.organisation_task.payload.common.ApiResponse;
 import uz.ilmnajot.organisation_task.payload.request.OrganisationRequest;
-import uz.ilmnajot.organisation_task.payload.request.RegionRequest;
 import uz.ilmnajot.organisation_task.service.OrganisationService;
 
 @RequiredArgsConstructor
@@ -60,16 +58,16 @@ public class OrganisationController {
 
     @GetMapping("/getInfoEmployee")
     public HttpEntity<ApiResponse> getInfoEmployeeInOrgan(@PathParam("month") String month,
-                                                          @PathParam("parentId") Long parentId){
+                                                          @PathParam("parentId") Long parentId) {
         ApiResponse apiResponse = organisationService.getInfoEmployee(month, parentId);
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
     }
+
     @GetMapping("/getInfoEmployeeSalary")
-    public HttpEntity<ApiResponse> getInfoEmployeeSalary(@PathParam("month") String month){
+    public HttpEntity<ApiResponse> getInfoEmployeeSalary(@PathParam("month") String month) {
         ApiResponse apiResponse = organisationService.getInfoEmployeeSalary(month);
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 404).body(apiResponse);
     }
-
 
 
 }

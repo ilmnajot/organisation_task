@@ -25,7 +25,7 @@ public interface OrganisationRepository extends JpaRepository<Organisation, Long
 
 
     ApiResponse getGeneralRate(Double rate, String month);
-    @Query("select new uz.ilmnajot.organisation_task.payload.response.InfoEmployeeOrganization(e.firstName, e.lastName, e.pinfl, avg(c.amount), o.name, e.id, o.region.id) from organisations as o " +
+    @Query("select new uz.ilmnajot.organisation_task.payload.response.InfoEmployeeOrganization(e.firstName, e.lastName, e.pinfl,avg(c.amount), o.name, e.id, o.id, o.region.id) from organisations as o " +
             "join organisations as parent_id on o.parentOrganisation.id= parent_id.id " +
             "join employees as e on e.organisation.id=o.id " +
             "join calculations as c on c.employee.id = e.id where to_char(c.date, 'YYYY.MM')=:month and parent_id.id =:id")

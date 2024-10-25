@@ -25,7 +25,7 @@ public class RegionServiceImpl implements RegionService {
 
     @Override
     public ApiResponse addRegion(RegionRequest request) {
-       existsByName(request.getName());
+        existsByName(request.getName());
         Region regionEntity = toRegionEntity(request);
         Region savedRegion = regionRepository.save(regionEntity);
         RegionResponse regionResponse = toRegionResponse(savedRegion);
@@ -34,7 +34,7 @@ public class RegionServiceImpl implements RegionService {
 
     @Override
     public ApiResponse updateRegion(Long regionId, RegionRequest request) {
-       existsByName(request.getName());
+        existsByName(request.getName());
         Region region = regionRepository.findById(regionId).orElseThrow(()
                 -> new NotFoundException("region not found"));
         Region converted = fromUpdateRegion(request, region);
@@ -96,14 +96,14 @@ public class RegionServiceImpl implements RegionService {
                 .build();
     }
 
-    private void existsByName(String name){
+    private void existsByName(String name) {
         if (regionRepository.existsByName(name)) {
             throw new AlreadyExistFoundException("This name already has been taken");
         }
     }
 
-    private Region fromUpdateRegion(RegionRequest request, Region region){
-        if (request.getName()!=null){
+    private Region fromUpdateRegion(RegionRequest request, Region region) {
+        if (request.getName() != null) {
             region.setName(request.getName());
         }
         return region;
